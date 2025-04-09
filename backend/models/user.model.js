@@ -6,6 +6,7 @@ const userShema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     fullName: {
       type: String,
@@ -57,6 +58,6 @@ const userShema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const user = mongoose.model("User", userShema);
+const User = mongoose.model("User", userShema);
 
-export default user;
+export default User;

@@ -1,8 +1,8 @@
 import express from "express";
-import signup from "../controllers/auth.signup.js";
-import login from "../controllers/auth.login.js";
-import logout from "../controllers/auth.logout.js";
-import getMe from "../controllers/auth.getMe.js";
+import signup from "../controllers/authContollers/auth.signup.js";
+import login from "../controllers/authContollers/auth.login.js";
+import logout from "../controllers/authContollers/auth.logout.js";
+import getMe from "../controllers/authContollers/auth.getMe.js";
 import protectRoute from "../middleware/protectRoute.js";
 
 const router = express.Router();

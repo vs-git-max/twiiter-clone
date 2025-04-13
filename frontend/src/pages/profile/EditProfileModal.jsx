@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 const EditProfileModal = ({ authUser }) => {
   const queryClient = useQueryClient();
@@ -15,29 +16,7 @@ const EditProfileModal = ({ authUser }) => {
     currentPassword: "",
   });
 
-  const { mutate: editUserProfile, isPending: isEditingUserProfile } =
-    useMutation({
-      mutationFn: async () => {
-        try {
-          const res = await fetch("api/users/update", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          });
-          const data = await res.json();
-
-          if (!res.ok) {
-            throw new Error(data.error || "Something went wrong");
-          }
-
-          return data;
-        } catch (error) {
-          throw new Error(error);
-        }
-      },
-    });
+  const { updateProfile, isUpdatingProfile } = useUpdateUserProfile(formData);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,7 +51,7 @@ const EditProfileModal = ({ authUser }) => {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              editUserProfile();
+              updateProfile();
             }}>
             <div className="flex flex-wrap gap-2">
               <input
@@ -136,7 +115,7 @@ const EditProfileModal = ({ authUser }) => {
               onChange={handleInputChange}
             />
             <button className="btn btn-primary rounded-full btn-sm text-white">
-              {isEditingUserProfile ? "Updating..." : "Update"}
+              {isUpdatingProfile ? "Updating..." : "Update"}
             </button>
           </form>
         </div>

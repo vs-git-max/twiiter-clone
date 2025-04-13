@@ -12,17 +12,6 @@ import toast from "react-hot-toast";
 const Sidebar = () => {
   const queryClient = useQueryClient();
 
-  const fetchAuthUser = async () => {
-    const res = await fetch("/api/auth/users");
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to fetch user");
-    }
-
-    return data;
-  };
-
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       try {
@@ -52,7 +41,6 @@ const Sidebar = () => {
 
   const { data: authUser } = useQuery({
     queryKey: ["authUser"],
-    queryFn: fetchAuthUser,
   });
 
   return (

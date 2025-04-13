@@ -27,7 +27,7 @@ const NotificationPage = () => {
     },
   });
 
-  const { mutate: deleteNotification } = useMutation({
+  const { mutate: deleteNotifications } = useMutation({
     mutationFn: async () => {
       try {
         const res = await fetch("/api/notifications", {

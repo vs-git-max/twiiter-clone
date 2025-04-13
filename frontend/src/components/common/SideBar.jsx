@@ -12,6 +12,17 @@ import toast from "react-hot-toast";
 const Sidebar = () => {
   const queryClient = useQueryClient();
 
+  const fetchAuthUser = async () => {
+    const res = await fetch("/api/auth/users");
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to fetch user");
+    }
+
+    return data;
+  };
+
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       try {
@@ -30,14 +41,19 @@ const Sidebar = () => {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({
+        queryKey: ["authUser"],
+      });
     },
     onError: () => {
       toast.error("Logout failed");
     },
   });
 
-  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const { data: authUser } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: fetchAuthUser,
+  });
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-52">

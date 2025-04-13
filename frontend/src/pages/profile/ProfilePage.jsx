@@ -11,10 +11,51 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date/functions";
+import useFollow from "../../hooks/useFollow";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const ProfilePage = () => {
+  const queryClient = useQueryClient();
+
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch("/api/users/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            profileImg,
+            coverImg,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+        queryClient.invalidateQueries({ queryKey: ["userProfile"] }),
+      ]);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   useQuery({ queryKey: ["authUser"] });
 
   const username = useParams();
@@ -26,7 +67,9 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isMyProfile = true;
+  const { follow, isPending } = useFollow();
+
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const {
     data: user,
@@ -52,6 +95,8 @@ const ProfilePage = () => {
   });
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
 
+  const isMyProfile = authUser._id === user?._id;
+
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
     if (file) {
@@ -67,6 +112,8 @@ const ProfilePage = () => {
   useEffect(() => {
     refetch();
   }, [username, refetch]);
+
+  const amIFollowing = authUser?.following.includes(user._id);
 
   return (
     <>
@@ -139,19 +186,21 @@ const ProfilePage = () => {
                 </div>
               </div>
               <div className="flex justify-end px-4 mt-5">
-                {isMyProfile && <EditProfileModal />}
+                {isMyProfile && <EditProfileModal authUser={authUser} />}
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
-                    onClick={() => alert("Followed successfully")}>
-                    Follow
+                    onClick={() => follow(user?._id)}>
+                    {isPending && "Loading..."}
+                    {!isPending && amIFollowing && "Unfollow"}
+                    {!isPending && !amIFollowing && "Unfollow"}
                   </button>
                 )}
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => alert("Profile updated successfully")}>
-                    Update
+                    onClick={() => updateProfile()}>
+                    {isUpdatingProfile ? "Updating..." : "Update"}
                   </button>
                 )}
               </div>
